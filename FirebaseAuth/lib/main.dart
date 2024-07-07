@@ -23,6 +23,8 @@ class Auth extends StatefulWidget {
 
 class _AuthState extends State<Auth> {
   String authState = "";
+  String registerEmailState = "";
+  String emailLoginOutState = "";
 
   @override
   Widget build(BuildContext context) {
@@ -41,17 +43,100 @@ class _AuthState extends State<Auth> {
                       .authStateChanges()
                       .listen((User? user) {
                     if (user == null) {
-                      authState = 'User is currently signed out!';
+                      setState(() {
+                        authState = 'User is currently signed out!';
+                      });
                     } else {
-                      authState = 'User is signed in!';
+                      setState(() {
+                        authState = 'User is signed in!';
+                      });
                     }
                   });
                 }, child: const Text("auth State")
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Text(registerEmailState,
+                  style: const TextStyle(fontSize: 24, color: Colors.black),
+                ),
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    registerEmail();
+                  }, child: const Text("register Email")
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Text(emailLoginOutState,
+                  style: const TextStyle(fontSize: 24, color: Colors.black),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        loginEmail();
+                      }, child: const Text("login")
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        logoutEmail();
+                      }, child: const Text("logout")
+                  ),
+                ],
+              )
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> registerEmail() async {
+    try {
+      UserCredential userCredential =
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: "abcd@gmail.com",
+        password: "qwerty1234",
+      );
+      setState(() {
+        registerEmailState = 'Registered user: ${userCredential.user!.uid}';
+      });
+    } catch (e) {
+      setState(() {
+        registerEmailState = 'Failed to register: $e';
+      });
+    }
+  }
+
+  Future<void> loginEmail() async {
+    try {
+      UserCredential userCredential =
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: "abcd@gmail.com",
+        password: "qwerty1234",
+      );
+      setState(() {
+        emailLoginOutState = 'login user: ${userCredential.user!.uid}';
+      });
+    } catch (e) {
+      setState(() {
+        emailLoginOutState = 'Failed to login: $e';
+      });
+    }
+  }
+
+  Future<void> logoutEmail() async {
+    try {
+      FirebaseAuth.instance.signOut();
+      setState(() {
+        emailLoginOutState = 'success logout';
+      });
+    } catch (e) {
+      setState(() {
+        emailLoginOutState = 'Failed to logout: $e';
+      });
+    }
   }
 }
