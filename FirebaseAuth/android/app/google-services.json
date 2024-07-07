@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "841258257364",
+    "project_id": "tistoryflutter2407",
+    "storage_bucket": "tistoryflutter2407.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841258257364:android:6f1390e566f7e83d14a441",
+        "android_client_info": {
+          "package_name": "tistory.glorygem.firebaseauth.firebase_auth_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrXidxH2t6FCfz_RiiwM_rH9WlABH9ZEU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

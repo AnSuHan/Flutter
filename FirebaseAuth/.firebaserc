@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "flutterslitherlink",
+    "dev": "tistoryflutter2407"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}
