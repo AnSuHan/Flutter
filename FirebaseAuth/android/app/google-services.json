@@ -12,7 +12,20 @@
           "package_name": "tistory.glorygem.firebaseauth.firebase_auth_project"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "841258257364-mj9dc4knoqft8b1dagbde3j8pr61foe4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tistory.glorygem.firebaseauth.firebase_auth_project",
+            "certificate_hash": "a7ac6cbd5427616b0298e20605a21338a175f8d0"
+          }
+        },
+        {
+          "client_id": "841258257364-g2d3tov8btiahmh33l4e2gj8e9ifbg2b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCrXidxH2t6FCfz_RiiwM_rH9WlABH9ZEU"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841258257364-g2d3tov8btiahmh33l4e2gj8e9ifbg2b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "841258257364-3m6pomifrq1kld0pq7qc1rejdf3qlh5e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "tistory.glorygem.firebaseauth.firebaseAuthProject"
+              }
+            }
+          ]
         }
       }
     }

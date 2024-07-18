@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>841258257364-3m6pomifrq1kld0pq7qc1rejdf3qlh5e.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.841258257364-3m6pomifrq1kld0pq7qc1rejdf3qlh5e</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>841258257364-mj9dc4knoqft8b1dagbde3j8pr61foe4.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAa2t3B6VWy-c50tgLS1sIxUIc-lKy06Oc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>841258257364</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>tistory.glorygem.firebaseauth.firebaseAuthProject</string>
+	<key>PROJECT_ID</key>
+	<string>tistoryflutter2407</string>
+	<key>STORAGE_BUCKET</key>
+	<string>tistoryflutter2407.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:841258257364:ios:b32bb0b4cf24cd6a14a441</string>
+</dict>
+</plist>
