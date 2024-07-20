@@ -3,7 +3,13 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const ClassA_Stateful());
+  //for Class B~D
+  //runApp(const ClassA_Stateful());
+  
+  //for Class E (showDialog)
+  runApp(const MaterialApp(
+    home: ClassA_Stateful(),
+  ));
 }
 
 class ClassA_Stateful extends StatefulWidget {
@@ -19,10 +25,16 @@ class _ClassA_Stateful extends State<ClassA_Stateful> {
   final ClassD classD = ClassD();
   final List<int> value_forClassD = [0, 0, 0];
 
+  //showDialog
+  late ClassE classE;
+
   @override
   void initState() {
     super.initState();
     _instance = this;
+
+    //showDialog
+    classE = ClassE(onUpdate: _updateStatic, classA: this);
   }
 
   void _update() {
@@ -35,6 +47,17 @@ class _ClassA_Stateful extends State<ClassA_Stateful> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            classE.showCustomDialog(context);
+          },
+          child: Text("showDialog"),
+        ),
+      ),
+    );
+    /*
     return MaterialApp(
       home: Scaffold(
         body: Column(
@@ -105,6 +128,7 @@ class _ClassA_Stateful extends State<ClassA_Stateful> {
         ),
       ),
     );
+     */
   }
 
   void increase() {
@@ -281,6 +305,59 @@ class ClassD {
             child: Text("I")
         ),
       ],
+    );
+  }
+}
+
+class ClassE {
+  final VoidCallback onUpdate;
+  final _ClassA_Stateful classA;
+
+  ClassE({
+    required this.onUpdate,
+    required this.classA
+  });
+
+  List<int> value = [0];
+
+  void showCustomDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(value[0].toString()),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            value[0]++;
+                          });
+                          ///아래 세 개 중 하나를 사용
+                          onUpdate();
+                          //classA._update();
+                          //_ClassA_Stateful._updateStatic();
+                        },
+                        child: const Text("A"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
