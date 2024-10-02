@@ -15,16 +15,39 @@ class User {
   User({this.name = '', this.age=0});
 }
 
-class UserBloc extends Bloc<UserEvent, User> {
-  UserBloc() : super(User()) {
-    //이벤트 리스너
-    on<CreateUserEvent>(createUser);
+// 두 명의 User 상태를 관리하기 위한 State 클래스 추가
+class UserState {
+  final User user1;
+  final User user2;
+
+  UserState({required this.user1, required this.user2});
+
+  // 기존 상태를 복사하면서 새로운 값을 적용하는 메소드
+  UserState copyWith({User? user1, User? user2}) {
+    return UserState(
+      user1: user1 ?? this.user1,
+      user2: user2 ?? this.user2,
+    );
+  }
+}
+
+class UserBloc extends Bloc<UserEvent, UserState> {
+  UserBloc() : super(UserState(user1: User(), user2: User())) {
+    // 이벤트 리스너 등록
+    on<CreateUserEvent>(createUser1);
+    on<CreateUser2Event>(createUser2);
   }
 
-  // 이벤트 리스너 구현부
-  FutureOr<void> createUser(CreateUserEvent event, Emitter<User> emit) {
+  // 첫 번째 User 생성
+  FutureOr<void> createUser1(CreateUserEvent event, Emitter<UserState> emit) {
     final User user = User(name: event.name, age: int.tryParse(event.age) ?? 0);
-    emit(user);
+    emit(state.copyWith(user1: user));
+  }
+
+  // 두 번째 User 생성
+  FutureOr<void> createUser2(CreateUser2Event event, Emitter<UserState> emit) {
+    final User user = User(name: event.name, age: int.tryParse(event.age) ?? 0);
+    emit(state.copyWith(user2: user));
   }
 }
 
@@ -37,6 +60,14 @@ class CreateUserEvent extends UserEvent {
 
   CreateUserEvent({required this.name, required this.age});
 }
+
+class CreateUser2Event extends UserEvent {
+  final String name;
+  final String age;
+
+  CreateUser2Event({required this.name, required this.age});
+}
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -79,12 +110,15 @@ class Home extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Age'),
                 ),
                 const SizedBox(height: 24.0),
-                BlocBuilder<UserBloc, User>(
+                BlocBuilder<UserBloc, UserState>(
                   builder: (context, state) {
                     return Column(
                       children: [
-                        Text('Name : ${state.name}'),
-                        Text('Age : ${state.age}'),
+                        Text('User 1 Name : ${state.user1.name}'),
+                        Text('User 1 Age : ${state.user1.age}'),
+                        const SizedBox(height: 12.0),
+                        Text('User 2 Name : ${state.user2.name}'),
+                        Text('User 2 Age : ${state.user2.age}'),
                       ],
                     );
                   },
@@ -94,6 +128,12 @@ class Home extends StatelessWidget {
                   onPressed: () {
                     BlocProvider.of<UserBloc>(context).add(
                       CreateUserEvent(
+                        name: nameController.text,
+                        age: ageController.text,
+                      ),
+                    );
+                    BlocProvider.of<UserBloc>(context).add(
+                      CreateUser2Event(
                         name: nameController.text,
                         age: ageController.text,
                       ),
