@@ -28,17 +28,47 @@ class _StreamPlayerState extends State<StreamPlayer> {
   double volume = 0.5;
   bool isVolumeDisabled = false;
 
+  //dropdown button
+  ///도메인(domain) : mp3, wav, opus, ogg, flac
+  String currentFileExtension = "mp3";
+
   @override
   void initState() {
     super.initState();
-    _initialize();
+    player = AudioPlayer();
+    _initialize("mp3");
   }
 
-  void _initialize() async {
-    player = AudioPlayer();
-    await player.setUrl(mp3Url); // 스트리밍 URL 설정
+  void _initialize(String extension) async {
+    // 기존에 재생 중인 오디오를 정지
+    await player.stop();
+
+    String url = "";
+    switch(extension) {
+      case "mp3":
+        url = mp3Url;
+        break;
+      case "wav":
+        url = mp3Url;
+        break;
+      case "opus":
+        url = mp3Url;
+        break;
+      case "ogg":
+        url = mp3Url;
+        break;
+      case "flac":
+        url = mp3Url;
+        break;
+      default:
+        url = mp3Url;
+    }
+    await player.setUrl(url); // 스트리밍 URL 설정
     await player.setVolume(volume);
-    setState(() {});
+
+    setState(() {
+      isPlaying = false; // 새로운 URL 설정 후 재생 상태 초기화
+    });
   }
 
   @override
@@ -82,7 +112,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
   }
 
   IconData _getPlayPauseIcon() {
-    return (isPlaying) ? Icons.pause : Icons.play_arrow;
+    return (player.playing) ? Icons.pause : Icons.play_arrow;
   }
 
   Stream<PositionData> get _positionDataStream =>
@@ -186,6 +216,40 @@ class _StreamPlayerState extends State<StreamPlayer> {
                 ),
               ),
             ],
+          ),
+          Center(
+            child: DropdownButton<String>(
+              dropdownColor: Colors.grey,
+              value: currentFileExtension, // 현재 선택된 값
+              items: const [
+                DropdownMenuItem(
+                  value: 'mp3',
+                  child: Text('mp3', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'wav',
+                  child: Text('wav', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'opus',
+                  child: Text('opus', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'ogg',
+                  child: Text('ogg', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'flac',
+                  child: Text('flac', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+              onChanged: (String? newValue) {
+                setState(() {
+                  currentFileExtension = newValue!;
+                  _initialize(currentFileExtension);
+                });
+              },
+            ),
           ),
         ],
       ),
