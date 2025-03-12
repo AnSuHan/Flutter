@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Dropdownbutton/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/Dropdownbutton/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/Dropdownbutton/build" />
+      <excludeFolder url="file://$MODULE_DIR$/Multilingual/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/Multilingual/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/Multilingual/build" />
+      <excludeFolder url="file://$MODULE_DIR$/SetStateContext/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/SetStateContext/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/SetStateContext/build" />
+      <excludeFolder url="file://$MODULE_DIR$/justAudioPlayer/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/justAudioPlayer/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/justAudioPlayer/build" />
+      <excludeFolder url="file://$MODULE_DIR$/stateofbloc/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/stateofbloc/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/stateofbloc/build" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
