@@ -21,7 +21,9 @@ class _StreamPlayerState extends State<StreamPlayer> {
   String wavUrl = "https://drive.google.com/uc?export=download&id=1oyoDu3pbG_PSVBA1Fd1dmZmVPrUNgMWv";
   String opusUrl = "https://drive.google.com/uc?export=download&id=10UI16A-VLFzndCYp7YTyhwWXPknN8b6s";
   String oggUrl = "https://drive.google.com/uc?export=download&id=1arq0BfPyXqbjDRQrcEHr_jHotg-cUyiD";
-  String flacUrl = "https://drive.google.com/uc?export=download&id=1LS06sSZ3eNSpW2Jz41DbSLbR3IgAAhrV";
+  String flacUrl = "https://drive.google.com/uc?export=download&id=1LS06sSZ3e NSpW2Jz41DbSLbR3IgAAhrV";
+  String keiserMp3Url = 'https://app.jigpu.com:2142/audio/mp3?audio_path=../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/(음원)/1. Nardis.mp3';
+  String keiserMp3UrlCBR = 'https://app.jigpu.com:2142/audio/mp3?audio_path=../../../data/[DBㅣ음원]/2025/2025-02-25ㅣ강혜인 - CHARIS/(음원)/CBR/1. Slient Snow.mp3';
 
   late AudioPlayer player;
   bool isPlaying = false;
@@ -29,7 +31,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
   bool isVolumeDisabled = false;
 
   //dropdown button
-  ///도메인(domain) : mp3, wav, opus, ogg, flac
+  ///도메인(domain) : mp3, wav, opus, ogg, flac, mp3_keiser, mp3_cbr_keiser
   String currentFileExtension = "mp3";
 
   @override
@@ -49,16 +51,22 @@ class _StreamPlayerState extends State<StreamPlayer> {
         url = mp3Url;
         break;
       case "wav":
-        url = mp3Url;
+        url = wavUrl;
         break;
       case "opus":
-        url = mp3Url;
+        url = opusUrl;
         break;
       case "ogg":
-        url = mp3Url;
+        url = oggUrl;
         break;
       case "flac":
-        url = mp3Url;
+        url = flacUrl;
+        break;
+      case "mp3_keiser":
+        url = keiserMp3Url;
+        break;
+      case "mp3_cbr_keiser":
+        url = keiserMp3UrlCBR;
         break;
       default:
         url = mp3Url;
@@ -241,6 +249,14 @@ class _StreamPlayerState extends State<StreamPlayer> {
                 DropdownMenuItem(
                   value: 'flac',
                   child: Text('flac', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'mp3_keiser',
+                  child: Text('mp3_keiser', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'mp3_cbr_keiser',
+                  child: Text('mp3_cbr_keiser', style: TextStyle(color: Colors.white)),
                 ),
               ],
               onChanged: (String? newValue) {
