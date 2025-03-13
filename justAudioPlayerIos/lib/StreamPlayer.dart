@@ -105,12 +105,6 @@ class _StreamPlayerState extends State<StreamPlayer> {
         } while (newIndex == playingIndex); // 기존 값과 동일하면 다시 생성
 
         playingIndex = newIndex;
-        if(playingIndex >= keiserMp3List.length) {
-          playingIndex = 0;
-        }
-        else if(playingIndex < 0) {
-          playingIndex = keiserMp3List.length;
-        }
       }
       // 일반 기준 재생 인덱스 변경
       else {
@@ -134,7 +128,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
       repeatTime = 0;
     }
     // 음원이 변경되지 않는 작업
-    else if(!enableShuffle) {
+    else {
       // 남은 반복 횟수 조정 (-1이면 조정하지 않음)
       if(repeatTime > 0) {
         repeatTime--;
@@ -245,14 +239,14 @@ class _StreamPlayerState extends State<StreamPlayer> {
                       fontSize: 16.0
                   );
                 },
-                icon: Icon(Icons.change_circle, size: 50, color: Colors.white),
+                icon: Icon(Icons.change_circle, size: 40, color: Colors.white),
               ),
               //이전 곡
               IconButton(
                 onPressed: () {
                   _initialize();
                 },
-                icon: Icon(Icons.chevron_left, size: 50, color: Colors.white),
+                icon: Icon(Icons.chevron_left, size: 40, color: Colors.white),
               ),
               //일시정지
               IconButton(
@@ -270,7 +264,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
                 onPressed: () {
                   _initialize();
                 },
-                icon: Icon(Icons.chevron_right, size: 50, color: Colors.white),
+                icon: Icon(Icons.chevron_right, size: 40, color: Colors.white),
               ),
               //현재 곡 반복 (1회)
               IconButton(
@@ -285,7 +279,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
                       fontSize: 16.0
                   );
                 },
-                icon: Icon(Icons.change_circle, size: 50, color: Colors.white),
+                icon: Icon(Icons.change_circle, size: 40, color: Colors.white),
               ),
               //현재 곡 반복 (무한)
               IconButton(
@@ -300,7 +294,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
                       fontSize: 16.0
                   );
                 },
-                icon: Icon(Icons.change_circle_outlined, size: 50, color: Colors.white),
+                icon: Icon(Icons.change_circle_outlined, size: 40, color: Colors.white),
               ),
             ],
           ),
