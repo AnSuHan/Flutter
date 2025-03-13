@@ -5,7 +5,7 @@ import 'package:rxdart/rxdart.dart';
 import 'Seekbar.dart';
 import 'main.dart';
 
-///일시정지 기능 & 이전 곡 & 다음 곡 기능을 제공하는 클래스
+///일시정지 기능만 제공하고 다음 곡 선택 대신 dropdown button으로 처리하는 클래스
 class StreamPlayer extends StatefulWidget {
   const StreamPlayer({super.key});
 
@@ -14,60 +14,70 @@ class StreamPlayer extends StatefulWidget {
 }
 
 class _StreamPlayerState extends State<StreamPlayer> {
-  String imagePrefix = "https://app.jigpu.com:2142/image/hd/?image_path=";
-  String mp3Prefix = "https://app.jigpu.com:2142/audio/mp3?audio_path=";
-  List<String> keiserImageList = [
-    "../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/필윤 - E.J. Homage to Elvin Jonesㅣ앨범커버.webp",
-    "../../../data/[DBㅣ음원]/2020/2020-11-30ㅣStraight Ahead - New Time/Straight Ahead - New Timeㅣ앨범커버.webp",
-    "../../../data/[DBㅣ음원]/2023/2023-12-20ㅣ강혜인 - Sky Above/강혜인 - Sky Aboveㅣ앨범커버ㅣ원본.webp",
-    "../../../data/[DBㅣ음원]/2022/2022-01-01ㅣ곽윤찬 - OLIVET/곽윤찬 - OLIVETㅣ앨범커버.webp",
-    "../../../data/[DBㅣ음원]/2022/2022-06-30ㅣ이은정 - 바다/이은정 - 바다ㅣ앨범커버.webp"
-  ];
-  // keiser 음원 (mp3) 배열
-  List<String> keiserMp3List = [
-    "../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/(음원)/5. E.J..mp3",
-    "../../../data/[DBㅣ음원]/2020/2020-11-30ㅣStraight Ahead - New Time/(음원)/6. Floating On The River.mp3",
-    "../../../data/[DBㅣ음원]/2023/2023-12-20ㅣ강혜인 - Sky Above/(음원)/mp3/6. Redeemed from the Earth.mp3",
-    "../../../data/[DBㅣ음원]/2022/2022-01-01ㅣ곽윤찬 - OLIVET/(음원)/flac, mp3/01. Light Year.mp3",
-    "../../../data/[DBㅣ음원]/2022/2022-06-30ㅣ이은정 - 바다/(음원)/01. 바다.mp3"
-  ];
-  int playingIndex = 0;
+  String imgUrl =
+      'https://firebasestorage.googleapis.com/v0/b/new-ml-6c02d.appspot.com/o/lessonAssets%2Fcs3%2Fch7%2Fls4%2Fearth.jpeg?alt=media&token=b9ce6139-5e08-495d-b74f-9dfce09e86e2';
+
+  // Google Drive에서 생성한 직접 다운로드 링크
+  String mp3Url = 'https://drive.google.com/uc?export=download&id=1SlS1Xn7r9sfgAtZOMxMxwB0P6_IeAX6s';
+  String wavUrl = "https://drive.google.com/uc?export=download&id=1oyoDu3pbG_PSVBA1Fd1dmZmVPrUNgMWv";
+  String opusUrl = "https://drive.google.com/uc?export=download&id=10UI16A-VLFzndCYp7YTyhwWXPknN8b6s";
+  String oggUrl = "https://drive.google.com/uc?export=download&id=1arq0BfPyXqbjDRQrcEHr_jHotg-cUyiD";
+  String flacUrl = "https://drive.google.com/uc?export=download&id=1LS06sSZ3e NSpW2Jz41DbSLbR3IgAAhrV";
+  String keiserMp3Url = 'https://app.jigpu.com:2142/audio/mp3?audio_path=../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/(음원)/1. Nardis.mp3';
+  String keiserMp3UrlCBR = 'https://app.jigpu.com:2142/audio/mp3?audio_path=../../../data/[DBㅣ음원]/2025/2025-02-25ㅣ강혜인 - CHARIS/(음원)/CBR/1. Slient Snow.mp3';
 
   late AudioPlayer player;
   bool isPlaying = false;
   double volume = 0.5;
   bool isVolumeDisabled = false;
 
+  //dropdown button
+  ///도메인(domain) : mp3, wav, opus, ogg, flac, mp3_keiser, mp3_cbr_keiser
+  String currentFileExtension = "mp3";
+
   @override
   void initState() {
     super.initState();
     player = AudioPlayer();
-    player.playerStateStream.listen((state) {
-      setState(() {
-        isPlaying = state.playing;
-      });
-      debugPrint("Player state changed: playing = ${state.playing}");
-    });
-    _initialize(changeAudio: true); //앱 실행 시 url 설정
+    _initialize("mp3");
   }
 
-  void _initialize({bool changeAudio = false}) async {
+  void _initialize(String extension) async {
     // 기존에 재생 중인 오디오를 정지
     await player.stop();
 
-    if(changeAudio) {
-      String url = mp3Prefix + keiserMp3List[playingIndex];
-      await player.setUrl(url); // 스트리밍 URL 설정
-      await player.setVolume(volume);
-
-      // Seekbar를 0초로 이동
-      await player.seek(Duration.zero);
+    String url = "";
+    switch(extension) {
+      case "mp3":
+        url = mp3Url;
+        break;
+      case "wav":
+        url = wavUrl;
+        break;
+      case "opus":
+        url = opusUrl;
+        break;
+      case "ogg":
+        url = oggUrl;
+        break;
+      case "flac":
+        url = flacUrl;
+        break;
+      case "mp3_keiser":
+        url = keiserMp3Url;
+        break;
+      case "mp3_cbr_keiser":
+        url = keiserMp3UrlCBR;
+        break;
+      default:
+        url = mp3Url;
     }
+    await player.setUrl(url); // 스트리밍 URL 설정
+    await player.setVolume(volume);
 
     setState(() {
       isPlaying = false; // 새로운 URL 설정 후 재생 상태 초기화
     });
-    debugPrint("Initialization complete. isPlaying = $isPlaying");
   }
 
   @override
@@ -97,32 +107,21 @@ class _StreamPlayerState extends State<StreamPlayer> {
   }
 
   void _playAudio() async {
-    if (!isPlaying) {
-      await player.play();
-      if (player.playing) {  // 실제로 재생이 시작되었는지 확인
-        setState(() {
-          isPlaying = true;
-        });
-      }
-    }
-    debugPrint("_playAudio complete. isPlaying = $isPlaying");
+    setState(() {
+      isPlaying = true;
+    });
+    await player.play();
   }
 
   void _pauseAudio() async {
-    if(isPlaying) {
-      await player.pause();
-      if (!player.playing) {  // 실제로 일시정지되었는지 확인
-        setState(() {
-          isPlaying = false;
-        });
-      }
-    }
-    debugPrint("_pauseAudio complete. isPlaying = $isPlaying");
+    setState(() {
+      isPlaying = false;
+    });
+    await player.pause();
   }
 
   IconData _getPlayPauseIcon() {
-    debugPrint("in _getPlayPauseIcon. isPlaying = $isPlaying");
-    return isPlaying ? Icons.pause : Icons.play_arrow;
+    return (player.playing) ? Icons.pause : Icons.play_arrow;
   }
 
   Stream<PositionData> get _positionDataStream =>
@@ -137,49 +136,30 @@ class _StreamPlayerState extends State<StreamPlayer> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Just Audio Example'),
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
             height: 200,
             width: 300,
-            child: Image.network(imagePrefix + keiserImageList[playingIndex]),
+            child: Image.network(imgUrl),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              //이전 곡
               IconButton(
                 onPressed: () {
-                  playingIndex--;
-                  if(playingIndex < 0) {
-                    playingIndex = keiserMp3List.length - 1;
-                  }
-                  _initialize(changeAudio: true);
-                },
-                icon: Icon(Icons.chevron_left, size: 50, color: Colors.white),
-              ),
-              //일시정지
-              IconButton(
-                onPressed: () {
-                  if (isPlaying) {
-                    _pauseAudio();
-                  } else {
-                    _playAudio();
+                  switch (isPlaying) {
+                    case true:
+                      return _pauseAudio();
+                    default:
+                      return _playAudio();
                   }
                 },
                 icon: Icon(_getPlayPauseIcon(), size: 50, color: Colors.white),
-              ),
-              //다음 곡
-              IconButton(
-                onPressed: () {
-                  playingIndex++;
-                  if(playingIndex > keiserMp3List.length - 1) {
-                    playingIndex = 0;
-                  }
-                  _initialize(changeAudio: true);
-                },
-                icon: Icon(Icons.chevron_right, size: 50, color: Colors.white),
               ),
             ],
           ),
@@ -245,6 +225,48 @@ class _StreamPlayerState extends State<StreamPlayer> {
                 ),
               ),
             ],
+          ),
+          Center(
+            child: DropdownButton<String>(
+              dropdownColor: Colors.grey,
+              value: currentFileExtension, // 현재 선택된 값
+              items: const [
+                DropdownMenuItem(
+                  value: 'mp3',
+                  child: Text('mp3', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'wav',
+                  child: Text('wav', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'opus',
+                  child: Text('opus', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'ogg',
+                  child: Text('ogg', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'flac',
+                  child: Text('flac', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'mp3_keiser',
+                  child: Text('mp3_keiser', style: TextStyle(color: Colors.white)),
+                ),
+                DropdownMenuItem(
+                  value: 'mp3_cbr_keiser',
+                  child: Text('mp3_cbr_keiser', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+              onChanged: (String? newValue) {
+                setState(() {
+                  currentFileExtension = newValue!;
+                  _initialize(currentFileExtension);
+                });
+              },
+            ),
           ),
         ],
       ),
