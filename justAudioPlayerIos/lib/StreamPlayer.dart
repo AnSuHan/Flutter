@@ -1,10 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'Seekbar.dart';
 import 'main.dart';
 
+///일시정지 기능 & 이전 곡 & 다음 곡 기능을 제공하는 클래스
 class StreamPlayer extends StatefulWidget {
   const StreamPlayer({super.key});
 
@@ -13,70 +17,135 @@ class StreamPlayer extends StatefulWidget {
 }
 
 class _StreamPlayerState extends State<StreamPlayer> {
-  String imgUrl =
-      'https://firebasestorage.googleapis.com/v0/b/new-ml-6c02d.appspot.com/o/lessonAssets%2Fcs3%2Fch7%2Fls4%2Fearth.jpeg?alt=media&token=b9ce6139-5e08-495d-b74f-9dfce09e86e2';
-
-  // Google Drive에서 생성한 직접 다운로드 링크
-  String mp3Url = 'https://drive.google.com/uc?export=download&id=1SlS1Xn7r9sfgAtZOMxMxwB0P6_IeAX6s';
-  String wavUrl = "https://drive.google.com/uc?export=download&id=1oyoDu3pbG_PSVBA1Fd1dmZmVPrUNgMWv";
-  String opusUrl = "https://drive.google.com/uc?export=download&id=10UI16A-VLFzndCYp7YTyhwWXPknN8b6s";
-  String oggUrl = "https://drive.google.com/uc?export=download&id=1arq0BfPyXqbjDRQrcEHr_jHotg-cUyiD";
-  String flacUrl = "https://drive.google.com/uc?export=download&id=1LS06sSZ3e NSpW2Jz41DbSLbR3IgAAhrV";
-  String keiserMp3Url = 'https://app.jigpu.com:2142/audio/mp3?audio_path=../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/(음원)/1. Nardis.mp3';
-  String keiserMp3UrlCBR = 'https://app.jigpu.com:2142/audio/mp3?audio_path=../../../data/[DBㅣ음원]/2025/2025-02-25ㅣ강혜인 - CHARIS/(음원)/CBR/1. Slient Snow.mp3';
+  String imagePrefix = "https://app.jigpu.com:2142/image/hd/?image_path=";
+  String mp3Prefix = "https://app.jigpu.com:2142/audio/mp3?audio_path=";
+  List<String> keiserImageList = [
+    "../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/필윤 - E.J. Homage to Elvin Jonesㅣ앨범커버.webp",
+    "../../../data/[DBㅣ음원]/2020/2020-11-30ㅣStraight Ahead - New Time/Straight Ahead - New Timeㅣ앨범커버.webp",
+    "../../../data/[DBㅣ음원]/2023/2023-12-20ㅣ강혜인 - Sky Above/강혜인 - Sky Aboveㅣ앨범커버ㅣ원본.webp",
+    "../../../data/[DBㅣ음원]/2022/2022-01-01ㅣ곽윤찬 - OLIVET/곽윤찬 - OLIVETㅣ앨범커버.webp",
+    "../../../data/[DBㅣ음원]/2022/2022-06-30ㅣ이은정 - 바다/이은정 - 바다ㅣ앨범커버.webp"
+  ];
+  // keiser 음원 (mp3) 배열
+  List<String> keiserMp3List = [
+    "../../../data/[DBㅣ음원]/2019/2007-06-21ㅣ필윤 - E.J. Homage to Elvin Jones/(음원)/5. E.J..mp3",
+    "../../../data/[DBㅣ음원]/2020/2020-11-30ㅣStraight Ahead - New Time/(음원)/6. Floating On The River.mp3",
+    "../../../data/[DBㅣ음원]/2023/2023-12-20ㅣ강혜인 - Sky Above/(음원)/mp3/6. Redeemed from the Earth.mp3",
+    "../../../data/[DBㅣ음원]/2022/2022-01-01ㅣ곽윤찬 - OLIVET/(음원)/flac, mp3/01. Light Year.mp3",
+    "../../../data/[DBㅣ음원]/2022/2022-06-30ㅣ이은정 - 바다/(음원)/01. 바다.mp3"
+  ];
 
   late AudioPlayer player;
+  /// 재생 상태
   bool isPlaying = false;
+  /// 재생 중인 음원 인덱스
+  int playingIndex = 0;
+
+  //반복
+  /// 남은 반복 횟수 저장
+  ///
+  /// 0 : 반복 없음, 양수 : 해당 횟수 만큼 반복, 음수 : 무한 반복
+  int repeatTime = 0;
+  /// 음원을 변경할 것인지
+  ///
+  /// 반복 재생이 true이면 false로 설정
+  bool changeAudio = true;
+
+  //셔플
+  /// 셔플 활성화 여부 저장
+  bool enableShuffle = false;
+
+  //볼륨 관련
   double volume = 0.5;
   bool isVolumeDisabled = false;
-
-  //dropdown button
-  ///도메인(domain) : mp3, wav, opus, ogg, flac, mp3_keiser, mp3_cbr_keiser
-  String currentFileExtension = "mp3";
 
   @override
   void initState() {
     super.initState();
     player = AudioPlayer();
-    _initialize("mp3");
+    player.playerStateStream.listen((state) {
+      setState(() {
+        isPlaying = state.playing;
+      });
+      debugPrint("Player state changed: playing = ${state.playing}");
+    });
+
+    //음원 끝에 도달하면 다음 곡 이동
+    player.playbackEventStream.listen((event) {
+      if (event.processingState == ProcessingState.completed) {
+        _initialize();
+      }
+    });
+
+    _initialize(moveToNext: 0, forcePlay: false); //앱 실행 시 url 설정 & 자동 재생 해제
   }
 
-  void _initialize(String extension) async {
+  /// 곡 변경 & 반복 처리 등 모든 작업은 이 분기에서 처리
+  ///
+  /// moveToNext : 음원을 변경한 상태 (1 : 다음 곡, -1 : 이전 곡, 0 : 현재 곡 유지) [repeatTime이 0이고 enableShuffle이 false인 경우에만 유효]
+  ///
+  /// forcePlay : 자동 재생을 설정
+  void _initialize({int moveToNext = 1, bool forcePlay = true}) async {
     // 기존에 재생 중인 오디오를 정지
     await player.stop();
 
-    String url = "";
-    switch(extension) {
-      case "mp3":
-        url = mp3Url;
-        break;
-      case "wav":
-        url = wavUrl;
-        break;
-      case "opus":
-        url = opusUrl;
-        break;
-      case "ogg":
-        url = oggUrl;
-        break;
-      case "flac":
-        url = flacUrl;
-        break;
-      case "mp3_keiser":
-        url = keiserMp3Url;
-        break;
-      case "mp3_cbr_keiser":
-        url = keiserMp3UrlCBR;
-        break;
-      default:
-        url = mp3Url;
-    }
-    await player.setUrl(url); // 스트리밍 URL 설정
-    await player.setVolume(volume);
+    // 반복 상태 확인
+    // repeatTime가 0이라면 다음 곡으로 넘어가야 하는 상태
+    // repeatTime가 0이 아니라면 현재 곡을 유지해야 하는 상태
+    changeAudio = repeatTime == 0;
 
-    setState(() {
-      isPlaying = false; // 새로운 URL 설정 후 재생 상태 초기화
-    });
+    // 음원이 변경되는 작업
+    if(changeAudio) {
+      // 셔플 기준 재생 인덱스 변경
+      if(enableShuffle) {
+        Random random = Random();
+        int newIndex = 0;
+        do {
+          newIndex = random.nextInt(keiserMp3List.length); // 0 이상, keiserMp3List.length 미만의 랜덤 정수 생성
+        } while (newIndex == playingIndex); // 기존 값과 동일하면 다시 생성
+
+        playingIndex = newIndex;
+      }
+      // 일반 기준 재생 인덱스 변경
+      else {
+        playingIndex += moveToNext;
+        if(playingIndex >= keiserMp3List.length) {
+          playingIndex = 0;
+        }
+        else if(playingIndex < 0) {
+          playingIndex = keiserMp3List.length - 1;
+        }
+      }
+
+      // 음원 변경
+      String url = mp3Prefix + keiserMp3List[playingIndex];
+      await player.setUrl(url); // 스트리밍 URL 설정
+      await player.setVolume(volume);
+
+      // Seekbar를 0초로 이동
+      await player.seek(Duration.zero);
+      // 반복 상태 초기화
+      repeatTime = 0;
+    }
+    // 음원이 변경되지 않는 작업
+    else {
+      // 남은 반복 횟수 조정 (-1이면 조정하지 않음)
+      if(repeatTime > 0) {
+        repeatTime--;
+      }
+
+      // Seekbar를 0초로 이동
+      await player.seek(Duration.zero);
+    }
+
+    if(forcePlay) {
+      _playAudio();
+    }
+    else {
+      _pauseAudio();
+    }
+
+    debugPrint("Initialization complete. isPlaying = $isPlaying, repeatTime = $repeatTime");
   }
 
   @override
@@ -106,21 +175,32 @@ class _StreamPlayerState extends State<StreamPlayer> {
   }
 
   void _playAudio() async {
-    setState(() {
-      isPlaying = true;
-    });
-    await player.play();
+    if (!isPlaying) {
+      await player.play();
+      if (player.playing) {  // 실제로 재생이 시작 되었는지 확인
+        setState(() {
+          isPlaying = true;
+        });
+      }
+    }
+    debugPrint("_playAudio complete. isPlaying = $isPlaying");
   }
 
   void _pauseAudio() async {
-    setState(() {
-      isPlaying = false;
-    });
-    await player.pause();
+    if(isPlaying) {
+      await player.pause();
+      if (!player.playing) {  // 실제로 일시정지 되었는지 확인
+        setState(() {
+          isPlaying = false;
+        });
+      }
+    }
+    debugPrint("_pauseAudio complete. isPlaying = $isPlaying");
   }
 
   IconData _getPlayPauseIcon() {
-    return (player.playing) ? Icons.pause : Icons.play_arrow;
+    debugPrint("in _getPlayPauseIcon. isPlaying = $isPlaying");
+    return isPlaying ? Icons.pause : Icons.play_arrow;
   }
 
   Stream<PositionData> get _positionDataStream =>
@@ -135,30 +215,95 @@ class _StreamPlayerState extends State<StreamPlayer> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text('Just Audio Example'),
-      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
             height: 200,
             width: 300,
-            child: Image.network(imgUrl),
+            child: Image.network(imagePrefix + keiserImageList[playingIndex]),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              //셔플
               IconButton(
                 onPressed: () {
-                  switch (isPlaying) {
-                    case true:
-                      return _pauseAudio();
-                    default:
-                      return _playAudio();
+                  enableShuffle = !enableShuffle;
+                  Fluttertoast.showToast(
+                      msg: enableShuffle ? "셔플 기능이 설정 되었습니다." : "셔플 기능이 해제 되었습니다.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                },
+                icon: Icon(Icons.shuffle, size: 40, color: Colors.white),
+              ),
+              //이전 곡
+              IconButton(
+                onPressed: () {
+                  repeatTime = 0;
+                  enableShuffle = false;
+                  _initialize(moveToNext: -1);
+                },
+                icon: Icon(Icons.chevron_left, size: 40, color: Colors.white),
+              ),
+              //일시정지
+              IconButton(
+                onPressed: () {
+                  if (isPlaying) {
+                    _pauseAudio();
+                  } else {
+                    _playAudio();
                   }
                 },
                 icon: Icon(_getPlayPauseIcon(), size: 50, color: Colors.white),
+              ),
+              //다음 곡
+              IconButton(
+                onPressed: () {
+                  repeatTime = 0;
+                  enableShuffle = false;
+                  _initialize();
+                },
+                icon: Icon(Icons.chevron_right, size: 40, color: Colors.white),
+              ),
+              //현재 곡 반복 (1회)
+              IconButton(
+                onPressed: () {
+                  repeatTime = 1;
+                  Fluttertoast.showToast(
+                      msg: "반복 횟수가 $repeatTime로 설정 되었습니다.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                },
+                icon: Icon(Icons.change_circle, size: 40, color: Colors.white),
+              ),
+              //현재 곡 반복 (무한)
+              IconButton(
+                onPressed: () {
+                  if(repeatTime == -1) {
+                    repeatTime = 0;
+                  }
+                  else {
+                    repeatTime = -1;
+                  }
+                  Fluttertoast.showToast(
+                      msg: "반복 횟수가 $repeatTime로 설정 되었습니다.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                },
+                icon: Icon(Icons.change_circle_outlined, size: 40, color: Colors.white),
               ),
             ],
           ),
@@ -224,48 +369,6 @@ class _StreamPlayerState extends State<StreamPlayer> {
                 ),
               ),
             ],
-          ),
-          Center(
-            child: DropdownButton<String>(
-              dropdownColor: Colors.grey,
-              value: currentFileExtension, // 현재 선택된 값
-              items: const [
-                DropdownMenuItem(
-                  value: 'mp3',
-                  child: Text('mp3', style: TextStyle(color: Colors.white)),
-                ),
-                DropdownMenuItem(
-                  value: 'wav',
-                  child: Text('wav', style: TextStyle(color: Colors.white)),
-                ),
-                DropdownMenuItem(
-                  value: 'opus',
-                  child: Text('opus', style: TextStyle(color: Colors.white)),
-                ),
-                DropdownMenuItem(
-                  value: 'ogg',
-                  child: Text('ogg', style: TextStyle(color: Colors.white)),
-                ),
-                DropdownMenuItem(
-                  value: 'flac',
-                  child: Text('flac', style: TextStyle(color: Colors.white)),
-                ),
-                DropdownMenuItem(
-                  value: 'mp3_keiser',
-                  child: Text('mp3_keiser', style: TextStyle(color: Colors.white)),
-                ),
-                DropdownMenuItem(
-                  value: 'mp3_cbr_keiser',
-                  child: Text('mp3_cbr_keiser', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-              onChanged: (String? newValue) {
-                setState(() {
-                  currentFileExtension = newValue!;
-                  _initialize(currentFileExtension);
-                });
-              },
-            ),
           ),
         ],
       ),
