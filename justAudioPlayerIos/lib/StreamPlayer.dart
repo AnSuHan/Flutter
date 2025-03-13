@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:just_audio/just_audio.dart';
@@ -49,6 +51,10 @@ class _StreamPlayerState extends State<StreamPlayer> {
   /// 반복 재생이 true이면 false로 설정
   bool changeAudio = true;
 
+  //셔플
+  /// 셔플 활성화 여부 저장
+  bool enableShuffle = false;
+
   //볼륨 관련
   double volume = 0.5;
   bool isVolumeDisabled = false;
@@ -76,7 +82,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
 
   /// 곡 변경 & 반복 처리 등 모든 작업은 이 분기에서 처리
   ///
-  /// moveToNext : 음원을 변경한 상태 (1 : 다음 곡, -1 : 이전 곡, 0 : 현재 곡 유지) [repeatTime이 0인 경우에만 유효]
+  /// moveToNext : 음원을 변경한 상태 (1 : 다음 곡, -1 : 이전 곡, 0 : 현재 곡 유지) [repeatTime이 0이고 enableShuffle이 false인 경우에만 유효]
   ///
   /// forcePlay : 자동 재생을 설정
   void _initialize({int moveToNext = 1, bool forcePlay = true}) async {
@@ -90,13 +96,31 @@ class _StreamPlayerState extends State<StreamPlayer> {
 
     // 음원이 변경되는 작업
     if(changeAudio) {
-      // 재생 인덱스 변경
-      playingIndex += moveToNext;
-      if(playingIndex >= keiserMp3List.length) {
-        playingIndex = 0;
+      // 셔플 기준 재생 인덱스 변경
+      if(enableShuffle) {
+        Random random = Random();
+        int newIndex = 0;
+        do {
+          newIndex = random.nextInt(keiserMp3List.length); // 0 이상, keiserMp3List.length 미만의 랜덤 정수 생성
+        } while (newIndex == playingIndex); // 기존 값과 동일하면 다시 생성
+
+        playingIndex = newIndex;
+        if(playingIndex >= keiserMp3List.length) {
+          playingIndex = 0;
+        }
+        else if(playingIndex < 0) {
+          playingIndex = keiserMp3List.length;
+        }
       }
-      else if(playingIndex < 0) {
-        playingIndex = keiserMp3List.length;
+      // 일반 기준 재생 인덱스 변경
+      else {
+        playingIndex += moveToNext;
+        if(playingIndex >= keiserMp3List.length) {
+          playingIndex = 0;
+        }
+        else if(playingIndex < 0) {
+          playingIndex = keiserMp3List.length;
+        }
       }
 
       // 음원 변경
@@ -110,7 +134,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
       repeatTime = 0;
     }
     // 음원이 변경되지 않는 작업
-    else {
+    else if(!enableShuffle) {
       // 남은 반복 횟수 조정 (-1이면 조정하지 않음)
       if(repeatTime > 0) {
         repeatTime--;
@@ -208,6 +232,21 @@ class _StreamPlayerState extends State<StreamPlayer> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              //셔플
+              IconButton(
+                onPressed: () {
+                  enableShuffle = !enableShuffle;
+                  Fluttertoast.showToast(
+                      msg: enableShuffle ? "셔플 기능이 설정 되었습니다." : "셔플 기능이 해제 되었습니다.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                },
+                icon: Icon(Icons.change_circle, size: 50, color: Colors.white),
+              ),
               //이전 곡
               IconButton(
                 onPressed: () {
