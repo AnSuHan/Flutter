@@ -113,7 +113,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
           playingIndex = 0;
         }
         else if(playingIndex < 0) {
-          playingIndex = keiserMp3List.length;
+          playingIndex = keiserMp3List.length - 1;
         }
       }
 
@@ -239,12 +239,14 @@ class _StreamPlayerState extends State<StreamPlayer> {
                       fontSize: 16.0
                   );
                 },
-                icon: Icon(Icons.change_circle, size: 40, color: Colors.white),
+                icon: Icon(Icons.shuffle, size: 40, color: Colors.white),
               ),
               //이전 곡
               IconButton(
                 onPressed: () {
-                  _initialize();
+                  repeatTime = 0;
+                  enableShuffle = false;
+                  _initialize(moveToNext: -1);
                 },
                 icon: Icon(Icons.chevron_left, size: 40, color: Colors.white),
               ),
@@ -262,6 +264,8 @@ class _StreamPlayerState extends State<StreamPlayer> {
               //다음 곡
               IconButton(
                 onPressed: () {
+                  repeatTime = 0;
+                  enableShuffle = false;
                   _initialize();
                 },
                 icon: Icon(Icons.chevron_right, size: 40, color: Colors.white),
@@ -284,7 +288,12 @@ class _StreamPlayerState extends State<StreamPlayer> {
               //현재 곡 반복 (무한)
               IconButton(
                 onPressed: () {
-                  repeatTime = -1;
+                  if(repeatTime == -1) {
+                    repeatTime = 0;
+                  }
+                  else {
+                    repeatTime = -1;
+                  }
                   Fluttertoast.showToast(
                       msg: "반복 횟수가 $repeatTime로 설정 되었습니다.",
                       toastLength: Toast.LENGTH_SHORT,
