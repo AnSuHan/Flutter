@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -31,10 +32,24 @@ class _StreamPlayerState extends State<StreamPlayer> {
     "../../../data/[DBㅣ음원]/2022/2022-01-01ㅣ곽윤찬 - OLIVET/(음원)/flac, mp3/01. Light Year.mp3",
     "../../../data/[DBㅣ음원]/2022/2022-06-30ㅣ이은정 - 바다/(음원)/01. 바다.mp3"
   ];
-  int playingIndex = 0;
 
   late AudioPlayer player;
+  /// 재생 상태
   bool isPlaying = false;
+  /// 재생 중인 음원 인덱스
+  int playingIndex = 0;
+
+  //반복
+  /// 남은 반복 횟수 저장
+  ///
+  /// 0 : 반복 없음, 양수 : 해당 횟수 만큼 반복, 음수 : 무한 반복
+  int repeatTime = 0;
+  /// 음원을 변경할 것인지
+  ///
+  /// 반복 재생이 true이면 false로 설정
+  bool changeAudio = true;
+
+  //볼륨 관련
   double volume = 0.5;
   bool isVolumeDisabled = false;
 
@@ -52,34 +67,67 @@ class _StreamPlayerState extends State<StreamPlayer> {
     //음원 끝에 도달하면 다음 곡 이동
     player.playbackEventStream.listen((event) {
       if (event.processingState == ProcessingState.completed) {
-        playingIndex++;
-        if(playingIndex > keiserMp3List.length - 1) {
-          playingIndex = 0;
-        }
-        _initialize(changeAudio: true);
+        _initialize();
       }
     });
 
-    _initialize(changeAudio: true); //앱 실행 시 url 설정
+    _initialize(moveToNext: 0, forcePlay: false); //앱 실행 시 url 설정 & 자동 재생 해제
   }
 
-  void _initialize({bool changeAudio = false}) async {
+  /// 곡 변경 & 반복 처리 등 모든 작업은 이 분기에서 처리
+  ///
+  /// moveToNext : 음원을 변경한 상태 (1 : 다음 곡, -1 : 이전 곡, 0 : 현재 곡 유지) [repeatTime이 0인 경우에만 유효]
+  ///
+  /// forcePlay : 자동 재생을 설정
+  void _initialize({int moveToNext = 1, bool forcePlay = true}) async {
     // 기존에 재생 중인 오디오를 정지
     await player.stop();
 
+    // 반복 상태 확인
+    // repeatTime가 0이라면 다음 곡으로 넘어가야 하는 상태
+    // repeatTime가 0이 아니라면 현재 곡을 유지해야 하는 상태
+    changeAudio = repeatTime == 0;
+
+    // 음원이 변경되는 작업
     if(changeAudio) {
+      // 재생 인덱스 변경
+      playingIndex += moveToNext;
+      if(playingIndex >= keiserMp3List.length) {
+        playingIndex = 0;
+      }
+      else if(playingIndex < 0) {
+        playingIndex = keiserMp3List.length;
+      }
+
+      // 음원 변경
       String url = mp3Prefix + keiserMp3List[playingIndex];
       await player.setUrl(url); // 스트리밍 URL 설정
       await player.setVolume(volume);
 
       // Seekbar를 0초로 이동
       await player.seek(Duration.zero);
+      // 반복 상태 초기화
+      repeatTime = 0;
+    }
+    // 음원이 변경되지 않는 작업
+    else {
+      // 남은 반복 횟수 조정 (-1이면 조정하지 않음)
+      if(repeatTime > 0) {
+        repeatTime--;
+      }
+
+      // Seekbar를 0초로 이동
+      await player.seek(Duration.zero);
     }
 
-    setState(() {
-      isPlaying = false; // 새로운 URL 설정 후 재생 상태 초기화
-    });
-    debugPrint("Initialization complete. isPlaying = $isPlaying");
+    if(forcePlay) {
+      _playAudio();
+    }
+    else {
+      _pauseAudio();
+    }
+
+    debugPrint("Initialization complete. isPlaying = $isPlaying, repeatTime = $repeatTime");
   }
 
   @override
@@ -111,7 +159,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
   void _playAudio() async {
     if (!isPlaying) {
       await player.play();
-      if (player.playing) {  // 실제로 재생이 시작되었는지 확인
+      if (player.playing) {  // 실제로 재생이 시작 되었는지 확인
         setState(() {
           isPlaying = true;
         });
@@ -123,7 +171,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
   void _pauseAudio() async {
     if(isPlaying) {
       await player.pause();
-      if (!player.playing) {  // 실제로 일시정지되었는지 확인
+      if (!player.playing) {  // 실제로 일시정지 되었는지 확인
         setState(() {
           isPlaying = false;
         });
@@ -163,11 +211,7 @@ class _StreamPlayerState extends State<StreamPlayer> {
               //이전 곡
               IconButton(
                 onPressed: () {
-                  playingIndex--;
-                  if(playingIndex < 0) {
-                    playingIndex = keiserMp3List.length - 1;
-                  }
-                  _initialize(changeAudio: true);
+                  _initialize();
                 },
                 icon: Icon(Icons.chevron_left, size: 50, color: Colors.white),
               ),
@@ -185,13 +229,39 @@ class _StreamPlayerState extends State<StreamPlayer> {
               //다음 곡
               IconButton(
                 onPressed: () {
-                  playingIndex++;
-                  if(playingIndex > keiserMp3List.length - 1) {
-                    playingIndex = 0;
-                  }
-                  _initialize(changeAudio: true);
+                  _initialize();
                 },
                 icon: Icon(Icons.chevron_right, size: 50, color: Colors.white),
+              ),
+              //현재 곡 반복 (1회)
+              IconButton(
+                onPressed: () {
+                  repeatTime = 1;
+                  Fluttertoast.showToast(
+                      msg: "반복 횟수가 $repeatTime로 설정 되었습니다.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                },
+                icon: Icon(Icons.change_circle, size: 50, color: Colors.white),
+              ),
+              //현재 곡 반복 (무한)
+              IconButton(
+                onPressed: () {
+                  repeatTime = -1;
+                  Fluttertoast.showToast(
+                      msg: "반복 횟수가 $repeatTime로 설정 되었습니다.",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                },
+                icon: Icon(Icons.change_circle_outlined, size: 50, color: Colors.white),
               ),
             ],
           ),
