@@ -48,6 +48,18 @@ class _StreamPlayerState extends State<StreamPlayer> {
       });
       debugPrint("Player state changed: playing = ${state.playing}");
     });
+
+    //음원 끝에 도달하면 다음 곡 이동
+    player.playbackEventStream.listen((event) {
+      if (event.processingState == ProcessingState.completed) {
+        playingIndex++;
+        if(playingIndex > keiserMp3List.length - 1) {
+          playingIndex = 0;
+        }
+        _initialize(changeAudio: true);
+      }
+    });
+
     _initialize(changeAudio: true); //앱 실행 시 url 설정
   }
 
